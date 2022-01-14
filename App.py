@@ -234,18 +234,27 @@ class SessionFrame(ttk.Frame):
         self.front_card, self.back_card = self.get_card_text()
         print(self.front_card)
 
-        self.frontFrame = ttk.Frame(self)
-        self.frontFrame.pack(expand=True, fill='both')
-        self.front_card = ttk.Label(self.frontFrame, text=self.front_card)
-        self.front_card.pack(padx=10, pady=10)
-        
-        self.var = tk.IntVar()
-        self.button = tk.Button(self.frontFrame, text="Click Me", command=lambda: self.var.set(1))
+        self.front_frame = ttk.Frame(self)
+        self.front_frame.pack(expand=True, fill='both')
+        self.front_card = ttk.Label(self.front_frame, text=self.front_card, font=("Helvetica", 20))
+        self.front_card.pack(expand=True, padx=10, pady=10)
+
+        self.front_button_frame = ttk.Frame(self)
+        self.front_button_frame.pack()
+        self.button = tk.Button(self.front_button_frame, text="Lihat Jawaban", command=lambda: self.var.set(1))
         self.button.pack(padx=10, pady=10)
+        
+        #self.back_frame = ttk.Frame(self)
+        #self.back_frame.pack(expand=True, fill='both')
+        #self.back_button_frame = ttk.Frame(self)
+        #self.back_button_frame.pack(expand=True, fill='both')
+        #self.var = tk.IntVar()
+        #self.button = tk.Button(self.back_frame, text="Click Me", command=lambda: self.var.set(1))
+        #self.button.pack(padx=10, pady=10)
         print("test")
 
         #Pack frame to window
-        self.pack(expand=True)
+        self.pack(expand=True, fill='both')
 
         #self.backFrame = ttk.Frame(self)
         #self.backFrame.pack(expand=True, fill='both')
