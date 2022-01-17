@@ -35,13 +35,26 @@
 #last_id = cursor.fetchall()
 #print(last_id)
 
-import tkinter as tk
-root = tk.Tk()
+#import tkinter as tk
+#root = tk.Tk()
 
-var = tk.IntVar()
-button = tk.Button(root, text="Click Me", command=lambda: var.set(1))
-button.place(relx=.5, rely=.5, anchor="c")
+#var = tk.IntVar()
+#button = tk.Button(root, text="Click Me", command=lambda: var.set(1))
+#button.place(relx=.5, rely=.5, anchor="c")
 
-print("waiting...")
-root.wait_variable(var)
-print("done waiting.")
+#print("waiting...")
+#root.wait_variable(var)
+#print("done waiting.")
+
+def fibonacci(n):
+    if n < 0:
+        print("Incorrect input")
+    elif n == 0:
+        return 1
+    elif n == 1:
+        return 1
+    else:
+        return fibonacci(n-1) + fibonacci(n-2)
+
+for i in range(10):
+    print(fibonacci(i))

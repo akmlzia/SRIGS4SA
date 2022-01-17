@@ -165,8 +165,8 @@ class DeckFrame(ttk.Frame):
         if decrease_days:
             #decrease cards days counter if user start new session
             for key, item in self.progress_dict.items():
-                if item > 0:
-                    self.progress_dict[key] -= 1
+                if item[0] > 0:
+                    self.progress_dict[key][0] -= 1
             student_id = self.student_tuple[0]
             cursor = self.connection.cursor()
             cursor.execute("""UPDATE progress SET progress = ? WHERE id = ?;""", [self.progress_dict, student_id])
@@ -177,9 +177,9 @@ class DeckFrame(ttk.Frame):
         remain_card = 0
         today_card = 0
         for key, item in self.progress_dict.items():
-            if item == 0:
+            if item[0] == 0:
                 today_card += 1
-            elif item == -2:
+            elif item[0] == -2:
                 remain_card += 1
         return {"remain_card": remain_card,"today_card": today_card}
 
@@ -190,24 +190,28 @@ class DeckFrame(ttk.Frame):
         self.prepare_nc(total_new_card)
         print(self.progress_dict)
         #Take card in this session
-        looped_list = [(key, item) for key, item in self.progress_dict.items() if item == 0 or item == -1]
+        looped_list = [(key, item) for key, item in self.progress_dict.items() if item[0] == 0 or item[0] == -1]
         print(looped_list)
         #Session Loop
         for card in looped_list:
             frame = SessionFrame(self.parent, card, self.connection)
             frame.wait_variable(frame.var)
-            if card[1] == 0:
+            if card[1][0] == 0:
                 looped_list.append(card)
+            print(looped_list)
             frame.destroy()
+        #put current looped_list into progress_dict
         #self.save2db()
+        DeckFrame(self.parent, self.student_tuple, False, self.connection)
     
     #prepare new card function
     def prepare_nc(self, total_new_card):
         total_new_card = int(total_new_card)
         if total_new_card > 0:
             for key, item in self.progress_dict.items():
-                if item == -2:
-                    self.progress_dict[key] = -1
+                if item[0] == -2:
+                    self.progress_dict[key][0] = -1
+                    self.progress_dict[key][1] = 0
                     total_new_card -= 1
                 if total_new_card == 0:
                     break
@@ -234,33 +238,48 @@ class SessionFrame(ttk.Frame):
         self.front_card, self.back_card = self.get_card_text()
         print(self.front_card)
 
+        #front card
         self.front_frame = ttk.Frame(self)
         self.front_frame.pack(expand=True, fill='both')
-        self.front_card = ttk.Label(self.front_frame, text=self.front_card, font=("Helvetica", 20))
-        self.front_card.pack(expand=True, padx=10, pady=10)
+        self.front_text_frame = ttk.Frame(self.front_frame)
+        self.front_text_frame.pack(expand=True, fill='both')
+        self.front_card_label = ttk.Label(self.front_text_frame, text=self.front_card, font=("Helvetica", 20))
+        self.front_card_label.pack(expand=True, padx=10, pady=10)
 
-        self.front_button_frame = ttk.Frame(self)
+        self.front_button_frame = ttk.Frame(self.front_frame)
         self.front_button_frame.pack()
-        self.button = tk.Button(self.front_button_frame, text="Lihat Jawaban", command=lambda: self.var.set(1))
+        self.button = tk.Button(self.front_button_frame, text="Lihat Jawaban", command=lambda: self.show_back_card())
         self.button.pack(padx=10, pady=10)
         
-        #self.back_frame = ttk.Frame(self)
-        #self.back_frame.pack(expand=True, fill='both')
-        #self.back_button_frame = ttk.Frame(self)
-        #self.back_button_frame.pack(expand=True, fill='both')
-        #self.var = tk.IntVar()
-        #self.button = tk.Button(self.back_frame, text="Click Me", command=lambda: self.var.set(1))
-        #self.button.pack(padx=10, pady=10)
+        #back card
+        self.back_frame = ttk.Frame(self)
+        self.back_text_frame = ttk.Frame(self.back_frame)
+        self.back_text_frame.pack(expand=True, fill='both')
+        self.front_card_label = ttk.Label(self.back_text_frame, text=self.front_card, font=("Helvetica", 20))
+        self.front_card_label.pack(expand=True, pady=5)
+        self.back_card_label = ttk.Label(self.back_text_frame, text=self.back_card, font=("Helvetica", 14))
+        self.back_card_label.pack(expand=True)
+
+        self.back_button_frame = ttk.Frame(self.back_frame)
+        self.back_button_frame.pack()
+        self.var = tk.IntVar()
+        if self.card[1][0] == -1: #New Card
+            self.button0 = tk.Button(self.back_button_frame, text="Mudah", command=lambda: self.fibonacci_change(3))
+            self.button0.pack(padx=10, pady=10, side='right')
+            self.button1 = tk.Button(self.back_button_frame, text="Ulangi", command=lambda: self.fibonacci_change(1))
+            self.button1.pack(padx=10, pady=10, side='right')
+        elif self.card[1][0] == 0: #Today/Again Card
+            self.button0 = tk.Button(self.back_button_frame, text="Mudah", command=lambda: self.fibonacci_change(3))
+            self.button0.pack(padx=10, pady=10, side='right')
+            self.button1 = tk.Button(self.back_button_frame, text="Lumayan", command=lambda: self.fibonacci_change(2))
+            self.button1.pack(padx=10, pady=10, side='right')
+            self.button2 = tk.Button(self.back_button_frame, text="Ulangi", command=lambda: self.fibonacci_change(1))
+            self.button2.pack(padx=10, pady=10, side='right')
         print("test")
 
         #Pack frame to window
         self.pack(expand=True, fill='both')
 
-        #self.backFrame = ttk.Frame(self)
-        #self.backFrame.pack(expand=True, fill='both')
-        #self.wait_variable(self.var)
-        #print("done waiting.")
-    
     def get_card_text(self):
         card_id = self.card[0]
         cursor = self.connection.cursor()
@@ -271,6 +290,30 @@ class SessionFrame(ttk.Frame):
         back_card = card_text[0][2]
         return front_card, back_card
 
+    def show_back_card(self):
+        self.front_frame.destroy()
+        self.back_frame.pack(expand=True, fill='both')
+
+    def fibonacci(self,n):
+        if n == 0:
+            return 1
+        elif n == 1:
+            return 1
+        else:
+            return self.fibonacci(n-1) + self.fibonacci(n-2)
+
+    def fibonacci_change(self, remember_level):
+        if remember_level == 1:
+            self.card[1][1] = 0
+            self.card[1][0] = 0
+        elif remember_level > 1:
+            if remember_level == 2:
+                self.card[1][1] += 1
+            elif remember_level == 3:
+                self.card[1][1] += 2
+            self.card[1][0] = self.fibonacci(self.card[1][1])
+        self.var.set(1)
+        
 class StudentManagerWindow(tk.Toplevel):
     def __init__(self, parent, connection):
         super().__init__(parent)
@@ -487,7 +530,7 @@ class StudentFormWindow(tk.Toplevel):
         #make progress dict based on cards table
         cursor.execute("SELECT id FROM cards;")
         cards_id_list = cursor.fetchall()
-        new_progress_dict = {tuple_id[0]:-2 for tuple_id in cards_id_list}
+        new_progress_dict = {tuple_id[0]:(-2,-2) for tuple_id in cards_id_list}
         #get new student id
         cursor.execute("SELECT id FROM students ORDER BY id DESC LIMIT 1;")
         new_student_id = cursor.fetchall()[0][0]
