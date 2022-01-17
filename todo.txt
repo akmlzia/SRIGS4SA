@@ -1,7 +1,6 @@
 ToDo:
-new card to enter session
-Session Frame / spaced repetition frame
 Back button at session frame (to deck frame)
+handle when window closed in session frame
 new card check in deck frame (when new card added)
 unite "mulai sesi lama/baru" button
 update ketika fokus beralih ke welcomeframe

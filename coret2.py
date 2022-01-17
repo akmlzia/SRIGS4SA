@@ -1,4 +1,4 @@
-#import csv
+import csv
 #import sqlite3
 #import json
 #dicta = {1:2, 3:4}
@@ -46,15 +46,16 @@
 #root.wait_variable(var)
 #print("done waiting.")
 
-def fibonacci(n):
-    if n < 0:
-        print("Incorrect input")
-    elif n == 0:
-        return 1
-    elif n == 1:
-        return 1
-    else:
-        return fibonacci(n-1) + fibonacci(n-2)
-
-for i in range(10):
-    print(fibonacci(i))
+rows = []
+with open("deck-example.csv", 'r') as file:
+    csvreader = csv.reader(file)
+    header = next(csvreader)
+    for row in csvreader:
+        rows.append(row)
+        rows.append([row[1], row[0]])
+print(header)
+print(rows[:5])
+with open("deck-example2.csv", 'w') as f:
+    for line in rows:
+        f.write("{},{}".format(line[0],line[1]))
+        f.write('\n')

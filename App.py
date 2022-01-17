@@ -193,15 +193,16 @@ class DeckFrame(ttk.Frame):
         looped_list = [(key, item) for key, item in self.progress_dict.items() if item[0] == 0 or item[0] == -1]
         print(looped_list)
         #Session Loop
-        for card in looped_list:
-            frame = SessionFrame(self.parent, card, self.connection)
+        while looped_list:
+            frame = SessionFrame(self.parent, looped_list[0], self.connection)
             frame.wait_variable(frame.var)
-            if card[1][0] == 0:
-                looped_list.append(card)
+            self.progress_dict[looped_list[0][0]] = looped_list[0][1]
+            if looped_list[0][1][0] == 0:
+                looped_list.append(looped_list[0])
+            looped_list.remove(looped_list[0])
             print(looped_list)
             frame.destroy()
-        #put current looped_list into progress_dict
-        #self.save2db()
+        self.save2db()
         DeckFrame(self.parent, self.student_tuple, False, self.connection)
     
     #prepare new card function
@@ -243,7 +244,7 @@ class SessionFrame(ttk.Frame):
         self.front_frame.pack(expand=True, fill='both')
         self.front_text_frame = ttk.Frame(self.front_frame)
         self.front_text_frame.pack(expand=True, fill='both')
-        self.front_card_label = ttk.Label(self.front_text_frame, text=self.front_card, font=("Helvetica", 20))
+        self.front_card_label = ttk.Label(self.front_text_frame, text=self.front_card, font=("Helvetica", 20), justify="center")
         self.front_card_label.pack(expand=True, padx=10, pady=10)
 
         self.front_button_frame = ttk.Frame(self.front_frame)
@@ -254,27 +255,27 @@ class SessionFrame(ttk.Frame):
         #back card
         self.back_frame = ttk.Frame(self)
         self.back_text_frame = ttk.Frame(self.back_frame)
-        self.back_text_frame.pack(expand=True, fill='both')
-        self.front_card_label = ttk.Label(self.back_text_frame, text=self.front_card, font=("Helvetica", 20))
-        self.front_card_label.pack(expand=True, pady=5)
+        self.back_text_frame.pack(expand=True)
+        self.front_card_label = ttk.Label(self.back_text_frame, text=self.front_card, font=("Helvetica", 20), justify="center")
+        self.front_card_label.grid(pady=5)
         self.back_card_label = ttk.Label(self.back_text_frame, text=self.back_card, font=("Helvetica", 14))
-        self.back_card_label.pack(expand=True)
+        self.back_card_label.grid()
 
         self.back_button_frame = ttk.Frame(self.back_frame)
         self.back_button_frame.pack()
         self.var = tk.IntVar()
         if self.card[1][0] == -1: #New Card
             self.button0 = tk.Button(self.back_button_frame, text="Mudah", command=lambda: self.fibonacci_change(3))
-            self.button0.pack(padx=10, pady=10, side='right')
+            self.button0.pack(padx=5, pady=10, side='right')
             self.button1 = tk.Button(self.back_button_frame, text="Ulangi", command=lambda: self.fibonacci_change(1))
-            self.button1.pack(padx=10, pady=10, side='right')
+            self.button1.pack(padx=5, pady=10, side='right')
         elif self.card[1][0] == 0: #Today/Again Card
             self.button0 = tk.Button(self.back_button_frame, text="Mudah", command=lambda: self.fibonacci_change(3))
-            self.button0.pack(padx=10, pady=10, side='right')
+            self.button0.pack(padx=5, pady=10, side='right')
             self.button1 = tk.Button(self.back_button_frame, text="Lumayan", command=lambda: self.fibonacci_change(2))
-            self.button1.pack(padx=10, pady=10, side='right')
+            self.button1.pack(padx=5, pady=10, side='right')
             self.button2 = tk.Button(self.back_button_frame, text="Ulangi", command=lambda: self.fibonacci_change(1))
-            self.button2.pack(padx=10, pady=10, side='right')
+            self.button2.pack(padx=5, pady=10, side='right')
         print("test")
 
         #Pack frame to window
@@ -286,9 +287,14 @@ class SessionFrame(ttk.Frame):
         cursor.execute("SELECT * FROM cards WHERE id=?;", [card_id])
         card_text = cursor.fetchall()
         print(card_text)
-        front_card = card_text[0][1]
+        front_card = self.text_shorter(card_text[0][1])
         back_card = card_text[0][2]
         return front_card, back_card
+    
+    def text_shorter(self, string):
+        if len(string) > 25:
+            string = "\n".join(string.split(" - "))
+        return string
 
     def show_back_card(self):
         self.front_frame.destroy()
